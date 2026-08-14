@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Mobility Agent Collective</title>
+<style>
+  :root {
+    --ground: #f4f6f4;
+    --surface: #ffffff;
+    --ink: #16201c;
+    --muted: #5d6b64;
+    --faint: #8b978f;
+    --accent: #00786b;
+    --accent-soft: #e0efec;
+    --rail: #ccd6d1;
+    --border: #dde4e0;
+    --warn: #9a5b06;
+    --warn-soft: #f7ecdc;
+    --radius: 10px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f1513;
+      --surface: #172020;
+      --ink: #e7eee9;
+      --muted: #93a49c;
+      --faint: #6d7d75;
+      --accent: #45c3b1;
+      --accent-soft: #16302c;
+      --rail: #2c3b36;
+      --border: #26332f;
+      --warn: #dd9f45;
+      --warn-soft: #2f2517;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 15px/1.55 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
+  button { font: inherit; color: inherit; }
+
+  header {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px;
+    padding: 20px 28px; border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  header h1 { font-size: 17px; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 13.5px; }
+  #fleet { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 11px; border: 1px solid var(--border); border-radius: 999px;
+    font: 500 12px/1 var(--mono); background: var(--ground); white-space: nowrap;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+  .chip.down { color: var(--warn); border-color: var(--warn); }
+  .chip.down .dot { background: var(--warn); }
+
+  main { display: grid; grid-template-columns: minmax(300px, 360px) 1fr; align-items: start; }
+  @media (max-width: 880px) { main { grid-template-columns: 1fr; } }
+
+  #rail-left { border-right: 1px solid var(--border); min-height: calc(100vh - 66px); background: var(--surface); }
+  @media (max-width: 880px) { #rail-left { border-right: 0; border-bottom: 1px solid var(--border); min-height: 0; } }
+
+  .panel { padding: 20px 22px; }
+  .panel + .panel { border-top: 1px solid var(--border); }
+  .label {
+    font: 600 11px/1 var(--sans); letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 12px;
+  }
+
+  .domains { display: flex; flex-direction: column; gap: 8px; }
+  .domain {
+    text-align: left; cursor: pointer; padding: 12px 14px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--ground);
+  }
+  .domain:hover { border-color: var(--rail); }
+  .domain[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .domain b { display: block; font-size: 14.5px; font-weight: 600; }
+  .domain span { display: block; color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+
+  .queries { display: flex; flex-direction: column; gap: 8px; }
+  .query {
+    text-align: left; cursor: pointer; padding: 12px 14px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--ground);
+  }
+  .query:hover { border-color: var(--rail); }
+  .query[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .query b { display: block; font-weight: 500; font-size: 14px; }
+  .query span { display: block; color: var(--muted); font-size: 12.5px; margin-top: 5px; }
+
+  .controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  select {
+    font: 12.5px var(--mono); padding: 8px 10px; border-radius: 8px; max-width: 100%;
+    border: 1px solid var(--border); background: var(--ground); color: var(--ink);
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .field > span { font: 600 11px/1 var(--sans); letter-spacing: 0.09em;
+                  text-transform: uppercase; color: var(--faint); }
+  .hint {
+    margin-top: 10px; padding: 12px 14px; border-radius: var(--radius);
+    background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn);
+    font: 12.5px/1.55 var(--mono); white-space: pre-wrap;
+  }
+  .checks { display: flex; flex-direction: column; gap: 7px; }
+  .check { display: flex; gap: 9px; align-items: baseline; font-size: 12.5px; }
+  .check .pip { width: 7px; height: 7px; border-radius: 50%; flex: none; margin-top: 5px; }
+  .check.ok .pip { background: var(--accent); }
+  .check.warn .pip, .check.fail .pip { background: var(--warn); }
+  .check b { font-weight: 600; }
+  .check span { color: var(--muted); }
+  #go {
+    cursor: pointer; padding: 10px 20px; border-radius: var(--radius); border: 0;
+    background: var(--accent); color: #fff; font-weight: 600;
+  }
+  :root:not([data-theme="light"]) #go { color: #08201d; }
+  #go:disabled { opacity: 0.45; cursor: not-allowed; }
+  .toggle { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; cursor: pointer; }
+
+  #stage { padding: 24px 28px 64px; }
+  .empty { color: var(--faint); max-width: 46ch; margin-top: 8px; }
+
+  .asked { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; max-width: 30ch; }
+  .runmeta { color: var(--muted); font-size: 13px; margin-top: 8px; font-family: var(--mono); }
+
+  .trace { margin-top: 26px; padding-left: 30px; border-left: 2px solid var(--rail); display: flex; flex-direction: column; gap: 20px; }
+  .step { position: relative; animation: rise 0.34s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .step { animation: none; } }
+  .step::before {
+    content: ""; position: absolute; left: -37px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--rail);
+  }
+  .step.is-accent::before { border-color: var(--accent); background: var(--accent); }
+  .step.is-warn::before { border-color: var(--warn); background: var(--warn); }
+
+  .step h3 { font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+
+  .toolline { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .tool { font: 600 13.5px var(--mono); color: var(--accent); }
+  .on { color: var(--faint); font-size: 12.5px; }
+  .agent { font: 500 12px var(--mono); padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .ms { margin-left: auto; font: 12px var(--mono); color: var(--faint); }
+  .shared {
+    font: 500 11px var(--mono); padding: 3px 8px; border-radius: 999px;
+    border: 1px dashed var(--rail); color: var(--muted);
+  }
+  .reason { color: var(--muted); font-size: 13.5px; margin-top: 9px; }
+
+  .badge { font: 600 11px/1 var(--mono); padding: 4px 9px; border-radius: 5px; letter-spacing: 0.03em; }
+  .badge.ok { background: var(--accent-soft); color: var(--accent); }
+  .badge.refused { background: var(--warn-soft); color: var(--warn); }
+
+  pre {
+    margin: 10px 0 0; padding: 12px 14px; overflow-x: auto;
+    background: var(--ground); border: 1px solid var(--border); border-radius: 8px;
+    font: 12px/1.5 var(--mono); font-variant-numeric: tabular-nums;
+  }
+  details > summary {
+    cursor: pointer; color: var(--muted); font-size: 12.5px; margin-top: 10px;
+    list-style: none;
+  }
+  details > summary::before { content: "▸ "; color: var(--faint); }
+  details[open] > summary::before { content: "▾ "; }
+
+  .answer { border-left: 3px solid var(--accent); font-size: 15.5px; line-height: 1.6; }
+  .answer.refused { border-left-color: var(--warn); }
+  .gaps { margin-top: 10px; color: var(--warn); font: 12.5px var(--mono); }
+  .sources { margin-top: 10px; color: var(--faint); font-size: 12px; }
+  .err { border-left: 3px solid var(--warn); color: var(--warn); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Smart Mobility Agent Collective</h1>
+    <div class="sub">Three independent MCP agents, discovered and called live over Streamable HTTP.</div>
+  </div>
+  <div id="fleet"></div>
+</header>
+
+<main>
+  <div id="rail-left">
+    <div class="panel">
+      <div class="label">1 &nbsp;Choose a domain</div>
+      <div class="domains" id="domains"></div>
+    </div>
+    <div class="panel">
+      <div class="label">2 &nbsp;Choose a question</div>
+      <div class="queries" id="queries"></div>
+    </div>
+    <div class="panel">
+      <label class="field">
+        <span>3 &nbsp;Router model</span>
+        <select id="model"></select>
+      </label>
+      <div id="keyhint"></div>
+    </div>
+    <div class="panel controls">
+      <button id="go" disabled>Run</button>
+      <label class="toggle"><input type="checkbox" id="scripted"> Scripted routing</label>
+    </div>
+    <div class="panel">
+      <div class="label">System check</div>
+      <div class="checks" id="checks"></div>
+    </div>
+  </div>
+
+  <div id="stage">
+    <p class="empty">Pick a domain and a question on the left. Each run shows which agent was
+      chosen, which tool was called, the arguments it was given, and what came back.</p>
+  </div>
+</main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+
+let catalogue = null, domain = null, query = null, running = false;
+
+async function load() {
+  catalogue = await (await fetch("/api/catalogue")).json();
+  const fleet = $("#fleet");
+  fleet.textContent = "";
+  for (const a of catalogue.agents) {
+    const chip = el("span", "chip" + (a.online ? "" : " down"));
+    chip.append(el("span", "dot"));
+    chip.append(document.createTextNode(a.online ? a.health.agent : a.id + " offline"));
+    chip.title = a.online ? `${a.tools.length} tools | ${a.health.data_sources.join(" | ")}` : (a.error || "");
+    fleet.append(chip);
+  }
+  const model = el("span", "chip");
+  model.append(el("span", "dot"));
+  model.append(document.createTextNode(catalogue.model === "unconfigured" ? "no model key" : catalogue.model));
+  fleet.append(model);
+
+  const picker = $("#model");
+  picker.textContent = "";
+  if (!catalogue.providers.length) {
+    picker.append(new Option("no API key - scripted routing only", ""));
+    picker.disabled = true;
+    $("#scripted").checked = true;
+    $("#scripted").disabled = true;
+    const hint = el("div", "hint", catalogue.key_hint);
+    $("#keyhint").textContent = "";
+    $("#keyhint").append(hint);
+  } else {
+    for (const p of catalogue.providers) {
+      const group = document.createElement("optgroup");
+      group.label = p.id;
+      for (const m of p.models) {
+        const opt = new Option(m, p.id + "::" + m);
+        if (m === catalogue.model) opt.selected = true;
+        group.append(opt);
+      }
+      picker.append(group);
+    }
+  }
+
+  fetch("/api/preflight").then(r => r.json()).then(d => {
+    const box = $("#checks");
+    box.textContent = "";
+    for (const c of d.checks) {
+      const row = el("div", "check " + c.status);
+      row.append(el("span", "pip"));
+      const text = el("div");
+      text.append(el("b", null, c.name + " "), el("span", null, c.detail));
+      row.append(text);
+      box.append(row);
+    }
+  });
+
+  const box = $("#domains");
+  for (const d of catalogue.domains) {
+    const b = el("button", "domain");
+    b.setAttribute("aria-pressed", "false");
+    b.append(el("b", null, d.name), el("span", null, d.blurb));
+    b.onclick = () => selectDomain(d.id);
+    box.append(b);
+  }
+  selectDomain(catalogue.domains[0].id);
+}
+
+function selectDomain(id) {
+  domain = id; query = null;
+  [...$("#domains").children].forEach((b, i) =>
+    b.setAttribute("aria-pressed", String(catalogue.domains[i].id === id)));
+  const box = $("#queries");
+  box.textContent = "";
+  for (const q of catalogue.queries.filter(q => q.domain === id)) {
+    const b = el("button", "query");
+    b.setAttribute("aria-pressed", "false");
+    b.append(el("b", null, q.text), el("span", null, q.why));
+    b.onclick = () => {
+      query = q;
+      [...box.children].forEach(x => x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      $("#go").disabled = false;
+    };
+    box.append(b);
+  }
+  $("#go").disabled = true;
+}
+
+$("#go").onclick = async () => {
+  if (!query || running) return;
+  running = true;
+  $("#go").disabled = true;
+  $("#go").textContent = "Running";
+  const stage = $("#stage");
+  stage.textContent = "";
+  stage.append(el("div", "asked", query.text));
+  const meta = el("div", "runmeta", "calling agents...");
+  stage.append(meta);
+
+  try {
+    const res = await fetch("/api/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        query_id: query.id,
+        scripted: $("#scripted").checked,
+        provider: ($("#model").value || "::").split("::")[0],
+        model: ($("#model").value || "::").split("::")[1],
+      }),
+    });
+    const data = await res.json();
+    if (data.error) { meta.textContent = data.error; return; }
+    meta.textContent =
+      (data.mode === "model" ? `routed by ${data.model}` : "scripted routing, no model asked")
+      + ` | ${data.ms} ms end to end`;
+    render(stage, data.trace);
+  } catch (e) {
+    meta.textContent = String(e);
+  } finally {
+    running = false;
+    $("#go").disabled = false;
+    $("#go").textContent = "Run";
+  }
+};
+
+function render(stage, trace) {
+  const list = el("div", "trace");
+  stage.append(list);
+  trace.forEach((s, i) => {
+    const step = el("div", "step");
+    step.style.animationDelay = (i * 90) + "ms";
+
+    if (s.kind === "route") {
+      step.append(el("h3", null, "Tool selected"));
+      const card = el("div", "card");
+      const line = el("div", "toolline");
+      line.append(el("span", "tool", s.tool), el("span", "on", "on"), el("span", "agent", s.agent));
+      if (s.also_on) line.append(el("span", "shared", "shared tool, also on " + s.also_on.join(", ")));
+      card.append(line);
+      if (s.reason) card.append(el("div", "reason", s.reason));
+      card.append(args(s.arguments));
+      step.append(card);
+
+    } else if (s.kind === "call") {
+      const refused = s.status === "out_of_scope";
+      step.className = "step " + (refused ? "is-warn" : "is-accent");
+      step.append(el("h3", null, "Agent responded"));
+      const card = el("div", "card");
+      const line = el("div", "toolline");
+      line.append(el("span", "badge " + (refused ? "refused" : "ok"), refused ? "out_of_scope" : "ok"));
+      line.append(el("span", "ms", s.ms + " ms"));
+      card.append(line);
+
+      const gaps = s.result && s.result.data_gaps;
+      if (gaps && gaps.length) card.append(el("div", "gaps", "declared data gaps: " + gaps.join(", ")));
+      const src = s.result && s.result.sources;
+      if (src && src.length) card.append(el("div", "sources", src.join(" | ")));
+
+      const d = el("details");
+      d.append(el("summary", null, "Full JSON response"));
+      d.append(el("pre", null, JSON.stringify(s.result, null, 2)));
+      card.append(d);
+      step.append(card);
+
+    } else if (s.kind === "answer") {
+      step.className = "step is-accent";
+      step.append(el("h3", null, "Answer"));
+      step.append(el("div", "card answer", s.text));
+
+    } else {
+      step.className = "step is-warn";
+      step.append(el("h3", null, "Problem"));
+      step.append(el("div", "card err", s.text));
+    }
+    list.append(step);
+  });
+}
+
+function args(a) {
+  const d = el("details");
+  d.open = true;
+  d.append(el("summary", null, "Arguments"));
+  d.append(el("pre", null, JSON.stringify(a, null, 2)));
+  return d;
+}
+
+load();
+</script>
+</body>
+</html>

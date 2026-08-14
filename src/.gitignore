@@ -1,0 +1,16 @@
+# Secrets - spec §8. Committing a key is a security incident, not a style issue.
+.env
+
+# Your cost dataset. Keep it locally for the report; don't commit it.
+usage.jsonl
+
+# Cached downloads of open datasets
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+wandb/

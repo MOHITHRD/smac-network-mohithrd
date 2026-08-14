@@ -1,0 +1,32 @@
+[
+  {
+    "prompt": "What was patronage in 1999, before the series begins?",
+    "tools": [
+      {
+        "name": "get_patronage",
+        "input": {
+          "start_month": "1999-01",
+          "end_month": "1999-06"
+        }
+      }
+    ],
+    "output": {
+      "status": "out_of_scope"
+    }
+  },
+  {
+    "prompt": "How many trips were taken in the second half of 2024?",
+    "tools": [
+      {
+        "name": "get_patronage",
+        "input": {
+          "start_month": "2024-07",
+          "end_month": "2024-12"
+        }
+      }
+    ],
+    "output": {
+      "total_trips": 0
+    }
+  }
+]

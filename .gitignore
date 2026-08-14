@@ -1,0 +1,13 @@
+.env
+src/.env.example
+__pycache__/
+.venv/
+.cache/
+*.pyc
+usage*.jsonl
+
+# Saved web pages at the root only. The leading slash matters: without it this
+# would also exclude application/index.html, which is part of the console.
+/*.html
+orchestrator_trace.jsonl
+wandb/
