@@ -1,11 +1,10 @@
-# Build context is the repository root, so this file lives here rather than
-# beside the Dockerfile: Docker reads .dockerignore from the context root.
+# Docker reads this from the build context, which is the repository root.
 #
 # Docker patterns do not cross a slash, so `*.md` and `*.html` exclude the
 # noisy files at the root only. application/index.html and the kit's README
 # are inside COPY'd directories and stay in the image.
 .git
-docs
+logs
 *.md
 *.html
 **/__pycache__

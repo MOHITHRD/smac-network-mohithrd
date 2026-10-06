@@ -1,12 +1,13 @@
 """
-agents/public_transport.py - your Public Transport agent.
+agents/network.py - your Network & Routing agent.
 
-    python agents/public_transport.py     # serves on :8001
+    python agents/network.py     # serves on :8000
 
 The server wiring is done. Fill in the tools.
 
-Note on the data: stop_times.txt in the GTFS archive is 164 MB uncompressed.
-Reading it inside a tool call will exceed the 45-second budget.
+Note on the data: the spec suggests OpenStreetMap via the Overpass API or OSMnx.
+Add your dataset to data.py, cached - a tool call must return within 45
+seconds, and Overpass is slow and rate-limited.
 
 Import note: use `from mcp.server import MCPServer`. Most tutorials show
 `FastMCP`, which is not in the SDK version this course requires.
@@ -27,7 +28,7 @@ import llm                                 # llm.ask() writes prose about your r
 from smac import check_identity, guard, in_seq, out_of_scope, respond
 
 # Change {slot} to your approved capability slot.
-AGENT_NAME = "smac-pt-changeme"
+AGENT_NAME = "smac-network-changeme"
 VERSION = "0.1.0"
 
 check_identity(AGENT_NAME, VERSION)
@@ -35,8 +36,9 @@ mcp = MCPServer(name=AGENT_NAME, version=VERSION)
 
 # health and geocode_place come from common.py. geocode_place is optional
 # and counts towards your five tools - drop it if your tools take no lat/lon.
+# Add your dataset's licence to data_sources once you have one.
 common.register(mcp, agent_name=AGENT_NAME, version=VERSION,
-                data_sources=[data.GTFS_LICENCE])
+                data_sources=[])
 
 
 # YOUR TOOLS: one to five, verb-first snake_case.
@@ -50,23 +52,23 @@ common.register(mcp, agent_name=AGENT_NAME, version=VERSION,
 
 @mcp.tool()
 @guard
-def find_nearest_stops(
-    lat: Annotated[float, Field(description="WGS84 latitude of the search point, in South East Queensland.")],
-    lon: Annotated[float, Field(description="WGS84 longitude of the search point, in South East Queensland.")],
-    max_results: Annotated[int, Field(description="How many of the closest stops to return, 1 to 10.")] = 5,
+def estimate_route_distance(
+    origin_lat: Annotated[float, Field(description="WGS84 latitude of the start, in South East Queensland.")],
+    origin_lon: Annotated[float, Field(description="WGS84 longitude of the start, in South East Queensland.")],
+    destination_lat: Annotated[float, Field(description="WGS84 latitude of the destination, in South East Queensland.")],
+    destination_lon: Annotated[float, Field(description="WGS84 longitude of the destination, in South East Queensland.")],
 ) -> dict:
     """TODO: describe what this returns, what it covers, and what it does not."""
-    if not in_seq(lat, lon):
+    if not (in_seq(origin_lat, origin_lon) and in_seq(destination_lat, destination_lon)):
         return out_of_scope(
-            f"This agent covers South East Queensland; {lat}, {lon} is outside it.",
-            sources=[data.GTFS_LICENCE],
+            "This agent covers South East Queensland; one of those points is outside it.",
+            sources=[data.OSM_LICENCE],
         )
 
-    # TODO: your logic here. data.gtfs_table("stops.txt") returns the 13,098 SEQ
-    # stops; haversine_m() in smac.py measures distance.
+    # TODO: your logic here, e.g. a road-network distance from OpenStreetMap.
     return out_of_scope(
-        "find_nearest_stops is not implemented yet.",
-        sources=[data.GTFS_LICENCE],
+        "estimate_route_distance is not implemented yet.",
+        sources=[data.OSM_LICENCE],
     )
 
 
@@ -75,4 +77,4 @@ def find_nearest_stops(
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http", host="0.0.0.0",
-            port=int(os.environ.get("PORT", "8001")))
+            port=int(os.environ.get("PORT", "8000")))

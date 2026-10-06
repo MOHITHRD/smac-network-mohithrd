@@ -1,0 +1,91 @@
+# Your agent, and the console that calls it over HTTP by name, the same way the
+# Showcase Orchestrator will. Keys come from .env beside this file.
+#
+#   docker compose up -d --build
+#   open http://localhost:8080
+
+name: smac-network
+
+x-agent: &agent
+  build: .
+  restart: unless-stopped
+  environment: &keys
+    # Your agent runs on the Claude API. With no key set the tools still return
+    # their computed facts; only the written commentary is skipped.
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    LLM_MODEL: ${LLM_MODEL:-}
+    # Only needed for `run_eval.py --wandb`. Your own key, your own project.
+    WANDB_API_KEY: ${WANDB_API_KEY:-}
+    WANDB_PROJECT: ${WANDB_PROJECT:-}
+    WANDB_ENTITY: ${WANDB_ENTITY:-}
+  volumes:
+    # Keeps downloaded datasets and the geocoding cache across restarts.
+    - cache:/app/src/.cache
+
+services:
+  network:
+    <<: *agent
+    command: python agents/network.py
+    ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket,os;socket.create_connection(('127.0.0.1',int(os.environ['PORT'])),2).close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    environment:
+      <<: *keys
+      PORT: "8000"
+      USAGE_LOG: /app/logs/usage.jsonl
+      WANDB_DIR: /app/logs
+    volumes:
+      - cache:/app/src/.cache
+      # Your cost log and any offline W&B runs, kept in logs/ on your machine so
+      # that rebuilding the container does not delete them.
+      - ./logs:/app/logs
+
+  console:
+    <<: *agent
+    command: python ../application/ui.py
+    ports: ["8080:8080"]
+    environment:
+      <<: *keys
+      PORT: "8080"
+      NETWORK_URL: http://network:8000/mcp
+    # Wait until the agent answers, so the console never opens showing it offline.
+    depends_on:
+      network: {condition: service_healthy}
+
+  # A public HTTPS address for your agent, so the Orchestrator can reach it from
+  # Week 9 onward. Opt-in, and needs no account:
+  #
+  #   docker compose --profile tunnel up -d
+  #
+  # The address changes every time the tunnel restarts. Re-register it when it does.
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://network:8000
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    depends_on:
+      network: {condition: service_healthy}
+
+  # The handshake test, run against your agent the way the Orchestrator connects
+  # to it. Needs the smac-handshake-test/ folder in the repository root, and
+  # writes handshake_report.json there for you to commit.
+  #
+  #   docker compose run --rm handshake
+  handshake:
+    image: python:3.12-slim
+    profiles: ["handshake"]
+    working_dir: /repo/smac-handshake-test
+    volumes:
+      - .:/repo
+    command: >-
+      sh -c "pip install -q --root-user-action=ignore --disable-pip-version-check -r requirements.txt
+      && python handshake.py http://network:8000/mcp --json /repo/handshake_report.json"
+    depends_on:
+      network: {condition: service_healthy}
+
+volumes:
+  cache:

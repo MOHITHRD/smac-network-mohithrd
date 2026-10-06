@@ -50,6 +50,12 @@ def register(
     actually read from; if `geocode` is on, the OpenStreetMap licence is added
     for you, because the moment that tool can answer, you are using OSM data.
     """
+    # Every agent runs on the Claude API, so none starts without a working key.
+    try:
+        llm.check()
+    except Exception as exc:  # noqa: BLE001 - one readable line, not a traceback
+        raise SystemExit(f"{agent_name} cannot start: {exc}") from None
+
     sources = list(data_sources)
     if geocode and data.OSM_LICENCE not in sources:
         sources.append(data.OSM_LICENCE)

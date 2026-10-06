@@ -9,6 +9,9 @@ works; there is nothing else to configure.
 
     ANTHROPIC_API_KEY=...
 
+The key is required. Every agent, the console, ask.py and run_eval.py call
+check() first, and refuse to start if the key is missing or rejected.
+
 Choose a tier with LLM_MODEL, or per call:
 
     ask(system, user, model="claude-sonnet-5")
@@ -34,10 +37,12 @@ API_KEY = "ANTHROPIC_API_KEY"
 DEFAULT_MODEL = "claude-haiku-4-5"
 PRICE_PER_MTOK = (1.00, 5.00)          # USD per million tokens: input, output
 
-USAGE_LOG = Path(__file__).with_name("usage.jsonl")
+# Docker sets USAGE_LOG to a folder on your machine, so rebuilding the container
+# does not delete the log.
+USAGE_LOG = Path(os.environ.get("USAGE_LOG") or Path(__file__).with_name("usage.jsonl"))
 TIMEOUT_SECONDS = 30.0
 
-NO_KEY = "(no API key configured - set ANTHROPIC_API_KEY to get written commentary)"
+NO_KEY = "ANTHROPIC_API_KEY is not set. Put it in .env at the repository root, then restart."
 
 
 def configured() -> bool:
@@ -56,18 +61,16 @@ def model_name(model: str | None = None) -> str:
     return model or os.environ.get("LLM_MODEL") or DEFAULT_MODEL
 
 
+def check() -> str:
+    """Prove the key works with one tiny real call, and return the model in use."""
+    ask(system="Reply with the single word ok.", user="ok", max_tokens=5)
+    return model_name()
+
+
 def ask(system: str, user: str, max_tokens: int = 1024, model: str | None = None) -> str:
-    """Send one prompt and return the text.
-
-    With no key this returns NO_KEY rather than raising. The prose a tool adds is
-    commentary on facts it has already computed, so losing the commentary must
-    not take down the whole tool.
-
-    A key that is present but rejected still raises: that is a real fault, and
-    hiding it would waste your afternoon.
-    """
+    """Send one prompt and return the text. Raises if the key is missing or rejected."""
     if not configured():
-        return NO_KEY
+        raise RuntimeError(NO_KEY)
 
     model = model_name(model)
     started = time.perf_counter()
@@ -84,6 +87,8 @@ def ask(system: str, user: str, max_tokens: int = 1024, model: str | None = None
         timeout=TIMEOUT_SECONDS,
     )
     latency_ms = int((time.perf_counter() - started) * 1000)
+    if response.status_code == 401:
+        raise RuntimeError("ANTHROPIC_API_KEY was rejected by the Claude API. Check it in .env.")
     if response.status_code != 200:
         raise RuntimeError(f"anthropic {response.status_code}: {response.text[:300]}")
 
@@ -108,5 +113,6 @@ def _log(model: str, tokens_in: int | None, tokens_out: int | None, latency_ms: 
         "latency_ms": latency_ms,
         "usd": usd,
     }
+    USAGE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with USAGE_LOG.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(record) + "\n")

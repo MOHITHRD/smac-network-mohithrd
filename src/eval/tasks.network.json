@@ -1,0 +1,34 @@
+[
+  {
+    "prompt": "How far is it by road to the Sydney Opera House?",
+    "tools": [
+      {
+        "name": "geocode_place",
+        "input": {
+          "place": "Sydney Opera House"
+        }
+      }
+    ],
+    "output": {
+      "status": "out_of_scope",
+      "reason": "South East Queensland"
+    }
+  },
+  {
+    "prompt": "How far is it by road from UQ St Lucia to Brisbane Airport?",
+    "tools": [
+      {
+        "name": "estimate_route_distance",
+        "input": {
+          "origin_lat": -27.4975,
+          "origin_lon": 153.0137,
+          "destination_lat": -27.3842,
+          "destination_lon": 153.1175
+        }
+      }
+    ],
+    "output": {
+      "distance_m": 0
+    }
+  }
+]

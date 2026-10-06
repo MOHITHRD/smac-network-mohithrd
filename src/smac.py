@@ -18,6 +18,11 @@ from datetime import datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Iterable
 
+# The SDK passes a ToolError's message to the caller. Anything else it treats
+# as a crash and replaces with "Error executing tool <name>", which tells the
+# Orchestrator nothing.
+from mcp.server.mcpserver.exceptions import ToolError
+
 # Identity
 
 # The seven domains are fixed by the specification. The kit ships skeletons for
@@ -100,12 +105,12 @@ def guard(fn):
         try:
             return _POOL.submit(fn, *args, **kwargs).result(timeout=TOOL_BUDGET_SECONDS)
         except _FuturesTimeout:
-            raise RuntimeError(
+            raise ToolError(
                 f"{fn.__name__} did not finish within {TOOL_BUDGET_SECONDS:.0f}s. "
                 "Cache your data or narrow the query - the spec limit is 45s."
             ) from None
         except Exception as exc:  # noqa: BLE001 - deliberate: never crash
-            raise RuntimeError(f"{fn.__name__} failed: {type(exc).__name__}: {exc}") from None
+            raise ToolError(f"{fn.__name__} failed: {type(exc).__name__}: {exc}") from None
 
     if wrapper.__doc__:
         wrapper.__doc__ = inspect.cleandoc(wrapper.__doc__)

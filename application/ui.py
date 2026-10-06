@@ -1,16 +1,16 @@
 """
 A demonstration console for the Smart Mobility Agent Collective.
 
-This is a real MCP client. It speaks Streamable HTTP to three independent agent
-servers, discovers their tools at runtime, and calls them. Nothing here is
+This is a real MCP client. It speaks Streamable HTTP to your agent server,
+discovers its tools at runtime, and calls them. Nothing here is
 stubbed, and the console has no special access: it sees exactly what the
 Showcase Orchestrator will see, which is a list of tool names, descriptions and
 parameter descriptions.
 
     python application/ui.py        # http://127.0.0.1:8080
 
-Agent URLs come from the environment so the same file works whether the agents
-are three local processes or three containers.
+The agent URL comes from the environment so the same file works whether the
+agent is a local process or a container.
 """
 
 from __future__ import annotations
@@ -44,12 +44,8 @@ MAX_STEPS = 4   # enough for geocode, two domain calls, then the answer
 MODEL_TIERS = ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-5"]
 
 AGENTS = [
-    {"id": "charging", "domain": "EV Charging",
-     "url": os.environ.get("CHARGING_URL", "http://127.0.0.1:8000/mcp")},
-    {"id": "public_transport", "domain": "Public Transport",
-     "url": os.environ.get("PT_URL", "http://127.0.0.1:8001/mcp")},
-    {"id": "policy", "domain": "Policy & Patronage",
-     "url": os.environ.get("POLICY_URL", "http://127.0.0.1:8002/mcp")},
+    {"id": "network", "domain": "Network & Routing",
+     "url": os.environ.get("NETWORK_URL", "http://127.0.0.1:8000/mcp")},
 ]
 
 def readable(exc: BaseException) -> str:
@@ -498,9 +494,8 @@ async def run(request):
 
 
 KEY_HINT = (
-    "Add one line to docker/.env and restart the stack:\n"
-    "    ANTHROPIC_API_KEY=...\n"
-    "Compose reads .env from the folder holding compose.yml, not the repo root."
+    "Add one line to .env at the repository root, and restart the stack:\n"
+    "    ANTHROPIC_API_KEY=..."
 )
 
 app = Starlette(routes=[
@@ -513,6 +508,12 @@ app = Starlette(routes=[
 
 if __name__ == "__main__":
     import uvicorn
+
+    # The console routes every question through Claude, so it needs a working key.
+    try:
+        llm.check()
+    except RuntimeError as exc:
+        raise SystemExit(f"The console cannot start: {exc}") from None
 
     # Print the same checks the UI serves, so a failure is visible in the logs
     # of whoever ran `docker compose up` rather than only in a browser.

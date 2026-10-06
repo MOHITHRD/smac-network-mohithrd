@@ -9,8 +9,8 @@ missing dependency, no API key, and a dataset that has to be downloaded at the
 worst possible moment. Each check says what is wrong and where to fix it, rather
 than leaving a stack trace to interpret.
 
-Nothing here is fatal on its own. With no API key your tools still return their
-computed facts, so that is reported as a warning and the run carries on.
+Both keys are required. A missing or rejected Claude key fails, and so does a
+missing W&B key, because nothing in the kit runs without them.
 """
 
 from __future__ import annotations
@@ -53,16 +53,22 @@ def check_dependencies() -> dict:
 def check_api_key() -> dict:
     import llm
 
-    if not llm.configured():
-        return _check(
-            "API key", WARN,
-            "none set, so your tools will skip their written commentary",
-            "Put one line in docker/.env, then restart:\n"
-            "    ANTHROPIC_API_KEY=...\n"
-            "Compose reads .env from the directory holding compose.yml, not the "
-            "repository root. Never commit it.",
-        )
-    return _check("API key", OK, f"Claude API configured, default model {llm.model_name()}")
+    try:
+        model = llm.check()
+    except Exception as exc:  # noqa: BLE001 - report it, don't crash the report
+        return _check("API key", FAIL, str(exc),
+                      "Put it in .env at the repository root, then restart:\n"
+                      "    ANTHROPIC_API_KEY=...\n"
+                      "Never commit it.")
+    return _check("API key", OK, f"Claude API answered, model {model}")
+
+
+def check_wandb_key() -> dict:
+    if not os.environ.get("WANDB_API_KEY"):
+        return _check("W&B key", FAIL, "none set, so run_eval.py will not run",
+                      "Put it in .env at the repository root, then restart:\n"
+                      "    WANDB_API_KEY=...")
+    return _check("W&B key", OK, f"set, project {os.environ.get('WANDB_PROJECT') or 'reit7820-eval'}")
 
 
 def check_datasets(fetch: bool = False) -> list[dict]:
@@ -78,38 +84,6 @@ def check_datasets(fetch: bool = False) -> list[dict]:
         except Exception as exc:
             return _check(name, FAIL, f"{type(exc).__name__}: {exc}", hint)
         return _check(name, OK, describe(rows))
-
-    if fetch or not any(cache.glob("*.json")):
-        results.append(one(
-            "EV charging stations",
-            lambda: data.charging_stations(),
-            lambda r: f"{len(r)} stations from data.qld.gov.au",
-            "The CKAN datastore API may be down. The agent falls back to a stale cache if it has one.",
-        ))
-    else:
-        results.append(_check("EV charging stations", OK, "cached"))
-
-    archive = cache / "seq_gtfs.zip"
-    if fetch or not archive.exists():
-        results.append(one(
-            "Translink GTFS",
-            lambda: data.gtfs_table("stops.txt"),
-            lambda r: f"{len(r)} stops, archive cached at {archive.name}",
-            "This is a 28 MB download. Check the container has network access.",
-        ))
-    else:
-        size_mb = archive.stat().st_size / 1e6
-        results.append(_check("Translink GTFS", OK, f"cached, {size_mb:.0f} MB"))
-
-    if fetch or not any(cache.glob("*.json")):
-        results.append(one(
-            "Patronage series",
-            lambda: data.patronage_seq(),
-            lambda r: f"{len(r)} monthly records",
-            "The CKAN datastore API may be down.",
-        ))
-    else:
-        results.append(_check("Patronage series", OK, "cached"))
 
     if fetch:
         results.append(one(
@@ -128,6 +102,7 @@ def run_checks(fetch: bool = False) -> list[dict]:
     if checks[1]["status"] == FAIL:
         return checks
     checks.append(check_api_key())
+    checks.append(check_wandb_key())
     checks.extend(check_datasets(fetch))
     return checks
 
@@ -135,7 +110,7 @@ def run_checks(fetch: bool = False) -> list[dict]:
 def main() -> int:
     fetch = "--fetch" in sys.argv
     if fetch:
-        print("Downloading datasets. The GTFS archive is 28 MB, so this takes a moment.\n")
+        print("Downloading datasets.\n")
 
     checks = run_checks(fetch)
     width = max(len(c["name"]) for c in checks)
