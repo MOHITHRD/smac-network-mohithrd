@@ -119,5 +119,13 @@
     "output": {
       "status": "out_of_scope"
     }
+  },
+  {
+    "_ground_truth": "Taken from the kit's worked example. Nominatim resolves 'Sydney Opera House' to Sydney, NSW, outside the SEQ bounding box in smac.in_seq(), so geocode_place must decline.",
+    "prompt": "How far is it by road to the Sydney Opera House?",
+    "tools": [
+      {"name": "geocode_place", "input": {"place": "Sydney Opera House"}}
+    ],
+    "output": {"status": "out_of_scope", "reason": "South East Queensland"}
   }
 ]
