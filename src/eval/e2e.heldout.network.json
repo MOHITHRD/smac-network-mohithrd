@@ -1,0 +1,42 @@
+[
+  {
+    "_ground_truth": "HELD OUT (not used when writing v2). Nominatim 'Hawken Village' -> shop/mall at (-27.50172, 153.00645), Hawken Drive, St Lucia: the correct referent, so the intended origin is that point. 10 m from the nearest walk-graph node (inside study area). Nearest stops by haversine over stlucia_stops.csv: 1814 Hawken Dr at Hawken Villiage 28 m, 1813 41 m, 1815 Boomerang Rd W 48 m. Tests that the v2 'facility' guidance does not over-trigger on a correct facility match.",
+    "prompt": "I'm at Hawken Village in St Lucia. Which bus stops can I walk to from here?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.5017154, "lon": 153.0064473, "tolerance_m": 300},
+    "answer_any": ["Hawken", "1814", "1813", "1815", "Boomerang"],
+    "answer_none": ["outside"]
+  },
+  {
+    "_ground_truth": "HELD OUT. Nominatim 'UQ Lakes' -> 'UQ Lakes stop D' (highway/bus_stop) at (-27.49803, 153.01780), which lies inside the UQ Lakes bus station, so it is an acceptable referent. Nearest stops: 11504 UQ Lakes stop D 4 m, 11503 stop C 11 m, 11505 stop E 16 m, 1882 UQ Lakes station 27 m.",
+    "prompt": "What stops are within walking distance of UQ Lakes?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4980328, "lon": 153.0178011, "tolerance_m": 300},
+    "answer_any": ["UQ Lakes"],
+    "answer_none": ["outside"]
+  },
+  {
+    "_ground_truth": "HELD OUT. Nominatim 'Guyatt Park' -> leisure/park at (-27.49350, 153.00120), St Lucia: correct referent. 19 m from the walk graph. Nearest stops: place_guyaft / 317572 Guyatt Park ferry terminal 160-168 m, 1849 / 1850 Sir Fred Schonell Dr at St Lucia Ferry 201-211 m.",
+    "prompt": "Which public transport stops are walkable from Guyatt Park?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4935033, "lon": 153.001203, "tolerance_m": 300},
+    "answer_any": ["Guyatt", "317572", "1849", "1850", "Sir Fred Schonell"],
+    "answer_none": ["outside"]
+  },
+  {
+    "_ground_truth": "HELD OUT, decline. Nominatim 'Toowong' -> boundary/administrative (suburb), correct referent, at (-27.47897, 152.98532). 1,585 m from the nearest walk-graph node, beyond the agent's 500 m snap limit, so the correct outcome is an out-of-study-area decline. Nearest study-area stop 1855 at 1,615 m.",
+    "prompt": "Which stops can I walk to from Toowong?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.478974, "lon": 152.9853241, "tolerance_m": 300},
+    "answer_any": ["outside", "not cover", "only covers", "study area", "cannot"],
+    "answer_none": []
+  },
+  {
+    "_ground_truth": "HELD OUT, decline. Nominatim 'Indooroopilly Shopping Centre' -> shop/mall at (-27.49960, 152.97280), Indooroopilly: correct referent. 1,760 m from the walk graph, beyond the 500 m snap limit, so decline. Nearest study-area stop 1832 at 1,828 m.",
+    "prompt": "How do I walk to a bus stop from Indooroopilly Shopping Centre?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4995967, "lon": 152.972799, "tolerance_m": 300},
+    "answer_any": ["outside", "not cover", "only covers", "study area", "cannot"],
+    "answer_none": []
+  }
+]
