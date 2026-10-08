@@ -31,7 +31,7 @@ import matching as M
 from smac import check_identity, guard, in_seq, metres, out_of_scope, respond, seconds
 
 AGENT_NAME = "smac-network-mohithrd"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 check_identity(AGENT_NAME, VERSION)
 mcp = MCPServer(name=AGENT_NAME, version=VERSION)
@@ -117,6 +117,25 @@ def _stop_entry(stop: dict, match: M.Match, from_node: str | None) -> dict:
             entry["walk"] = leg
     return entry
 
+def _origin_context(lat: float, lon: float, snap_d: float) -> dict:
+    """Where the supplied coordinate actually is, in named terms.
+
+    match_confidence describes the stop -> footpath join. It cannot see an error
+    made before this agent was called, such as a place name resolved to the
+    wrong feature. This block names what the coordinate is next to, so a caller
+    can notice that "the campus" has landed on a ferry terminal. Returned on
+    every response, unrequested, like match_confidence.
+    """
+    stop = min(M.load_stops(),
+               key=lambda s: M.haversine_m(lat, lon, s["lat"], s["lon"]))
+    return {
+        "nearest_named_stop": stop["stop_name"],
+        "nearest_stop_id": stop["stop_id"],
+        "distance_to_nearest_stop_m": metres(M.haversine_m(lat, lon, stop["lat"], stop["lon"])),
+        "distance_to_footpath_m": metres(snap_d),
+        "note": ("Describes the coordinate supplied. If this is not where the "
+                 "user meant, resolve the place again and call again."),
+    }
 
 common.register(mcp, agent_name=AGENT_NAME, version=VERSION,
                 data_sources=_sources())
@@ -147,8 +166,22 @@ def find_nearest_accessible_stops(
     the stop is reported as unmatched rather than given a confident-looking
     nearest node.
 
-    Coverage is one pinned South East Queensland study area only - see the
-    study_area field. Points outside it are declined. Data is a fixed dated
+    Starting point is a coordinate. If the user gave coordinates, pass them
+    unchanged. If they gave a place name, resolve it with geocode_place and
+    check what it matched before calling this tool: OpenStreetMap often returns
+    a facility that merely shares the name, such as a ferry terminal, station,
+    shop or office, instead of the campus, suburb or district the user meant.
+    If match_kind is a facility but the user meant a larger place, look it up
+    again using the place's full formal name. A geocode_place reply saying
+    there is no match means the name was not found, NOT that the place is
+    outside coverage: retry with a shorter or more formal name before
+    answering. Every response includes origin_context, naming the stop nearest
+    the coordinate supplied; if that is not where the user meant, resolve the
+    place again and call again.
+
+    Coverage is one pinned study area: the suburb of St Lucia, Brisbane
+    (4.62 km2, including the University of Queensland St Lucia campus) - see
+    the study_area field. Points outside it are declined. Data is a fixed dated
     extract of OpenStreetMap and TransLink GTFS, NOT live: no timetables, no
     real-time departures, no service alerts, no fares, and no vehicle positions.
     """
@@ -183,6 +216,7 @@ def find_nearest_accessible_stops(
     routable = [e for e in entries if "walk" in e]
     payload = {
         "origin": {"lat": lat, "lon": lon},
+        "origin_context": _origin_context(lat, lon, snap_d),
         "study_area": _study_area(),
         "matching_strategy": STRATEGY,
         "stops": entries,
@@ -221,7 +255,21 @@ def find_multimodal_route(
     access point exists, and the route is refused rather than returned with an
     access point that may be on the wrong side of the road.
 
-    Coverage is one pinned South East Queensland study area only. Does NOT
+    Origin and destination are coordinates. If the user gave coordinates, pass
+    them unchanged. If they gave a place name, resolve it with geocode_place and
+    check what it matched before calling this tool: OpenStreetMap often returns
+    a facility that merely shares the name, such as a ferry terminal, station,
+    shop or office, instead of the campus, suburb or district the user meant.
+    If match_kind is a facility but the user meant a larger place, look it up
+    again using the place's full formal name. A geocode_place reply saying
+    there is no match means the name was not found, NOT that the place is
+    outside coverage: retry with a shorter or more formal name before
+    answering. Every response includes origin_context and destination_context,
+    naming the stop nearest each coordinate supplied; if either is not where
+    the user meant, resolve the place again and call again.
+
+    Coverage is one pinned study area: the suburb of St Lucia, Brisbane
+    (4.62 km2, including the University of Queensland St Lucia campus). Does NOT
     provide the transit leg itself: no departure times, journey durations,
     interchanges, route numbers, fares or real-time information - those come
     from schedule data this agent does not carry. Also does not plan driving,
@@ -254,6 +302,8 @@ def find_multimodal_route(
     base = {
         "origin": {"lat": origin_lat, "lon": origin_lon},
         "destination": {"lat": destination_lat, "lon": destination_lon},
+        "origin_context": _origin_context(origin_lat, origin_lon, o_d),
+        "destination_context": _origin_context(destination_lat, destination_lon, d_d),
         "study_area": _study_area(),
         "matching_strategy": STRATEGY,
     }

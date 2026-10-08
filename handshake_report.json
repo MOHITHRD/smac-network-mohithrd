@@ -2,7 +2,7 @@
   "harness_version": "1.0.1",
   "url": "http://network:8000/mcp",
   "agent": "smac-network-mohithrd",
-  "tested_at": "2026-10-08T06:09:49.898144+00:00",
+  "tested_at": "2026-10-08T07:49:32.617384+00:00",
   "passed": true,
   "checks": [
     {
@@ -31,7 +31,7 @@
       "findings": [
         {
           "level": "INFO",
-          "message": "health OK: {\"status\": \"ok\", \"agent\": \"smac-network-mohithrd\", \"version\": \"0.1.0\", \"data_sources\": [\"OpenStreetMap contributors via Overpass/OSMnx (ODbL 1.0), walk network "
+          "message": "health OK: {\"status\": \"ok\", \"agent\": \"smac-network-mohithrd\", \"version\": \"0.2.0\", \"data_sources\": [\"OpenStreetMap contributors via Overpass/OSMnx (ODbL 1.0), walk network "
         }
       ]
     },
@@ -83,7 +83,7 @@
       "findings": [
         {
           "level": "INFO",
-          "message": "13 calls, slowest `find_nearest_accessible_stops` at 1.85s (limit 45s)"
+          "message": "13 calls, slowest `find_nearest_accessible_stops` at 1.62s (limit 45s)"
         }
       ]
     }
@@ -92,37 +92,37 @@
     {
       "tool": "(initialize)",
       "purpose": "initialize",
-      "seconds": 0.024,
+      "seconds": 0.025,
       "outcome": "ok"
     },
     {
       "tool": "health",
       "purpose": "health",
-      "seconds": 0.008,
+      "seconds": 0.007,
       "outcome": "ok"
     },
     {
       "tool": "geocode_place",
       "purpose": "valid call",
-      "seconds": 1.374,
+      "seconds": 0.005,
       "outcome": "ok"
     },
     {
       "tool": "find_nearest_accessible_stops",
       "purpose": "valid call",
-      "seconds": 1.848,
+      "seconds": 1.62,
       "outcome": "ok"
     },
     {
       "tool": "find_multimodal_route",
       "purpose": "valid call",
-      "seconds": 1.487,
+      "seconds": 1.283,
       "outcome": "ok"
     },
     {
       "tool": "geocode_place",
       "purpose": "malformed: missing required arguments",
-      "seconds": 0.011,
+      "seconds": 0.007,
       "outcome": "tool_error"
     },
     {
@@ -134,7 +134,7 @@
     {
       "tool": "find_nearest_accessible_stops",
       "purpose": "malformed: missing required arguments",
-      "seconds": 0.004,
+      "seconds": 0.003,
       "outcome": "tool_error"
     },
     {
