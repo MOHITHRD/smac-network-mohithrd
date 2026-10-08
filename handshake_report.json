@@ -2,7 +2,7 @@
   "harness_version": "1.0.1",
   "url": "http://network:8000/mcp",
   "agent": "smac-network-mohithrd",
-  "tested_at": "2026-10-08T08:36:18.057196+00:00",
+  "tested_at": "2026-10-08T08:57:54.799466+00:00",
   "passed": true,
   "checks": [
     {
@@ -31,7 +31,7 @@
       "findings": [
         {
           "level": "INFO",
-          "message": "health OK: {\"status\": \"ok\", \"agent\": \"smac-network-mohithrd\", \"version\": \"0.3.0\", \"data_sources\": [\"OpenStreetMap contributors via Overpass/OSMnx (ODbL 1.0), walk network "
+          "message": "health OK: {\"status\": \"ok\", \"agent\": \"smac-network-mohithrd\", \"version\": \"0.3.1\", \"data_sources\": [\"OpenStreetMap contributors via Overpass/OSMnx (ODbL 1.0), walk network "
         }
       ]
     },
@@ -91,7 +91,7 @@
       "findings": [
         {
           "level": "INFO",
-          "message": "19 calls, slowest `find_multimodal_route` at 1.68s (limit 45s)"
+          "message": "19 calls, slowest `find_nearest_accessible_stops` at 1.47s (limit 45s)"
         }
       ]
     }
@@ -118,25 +118,25 @@
     {
       "tool": "find_nearest_accessible_stops",
       "purpose": "valid call",
-      "seconds": 1.66,
+      "seconds": 1.465,
       "outcome": "ok"
     },
     {
       "tool": "find_multimodal_route",
       "purpose": "valid call",
-      "seconds": 1.675,
+      "seconds": 1.259,
       "outcome": "ok"
     },
     {
       "tool": "find_walking_route",
       "purpose": "valid call",
-      "seconds": 1.2,
+      "seconds": 0.979,
       "outcome": "ok"
     },
     {
       "tool": "find_walkable_catchment",
       "purpose": "valid call",
-      "seconds": 1.303,
+      "seconds": 1.179,
       "outcome": "ok"
     },
     {
@@ -154,7 +154,7 @@
     {
       "tool": "find_nearest_accessible_stops",
       "purpose": "malformed: missing required arguments",
-      "seconds": 0.003,
+      "seconds": 0.004,
       "outcome": "tool_error"
     },
     {

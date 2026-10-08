@@ -31,7 +31,7 @@ import matching as M
 from smac import check_identity, guard, in_seq, metres, out_of_scope, respond, seconds
 
 AGENT_NAME = "smac-network-mohithrd"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 check_identity(AGENT_NAME, VERSION)
 mcp = MCPServer(name=AGENT_NAME, version=VERSION)
@@ -63,6 +63,18 @@ def _sources() -> list[str]:
 
 def _study_area() -> str:
     return M.load_manifest().get("study_area", "the configured study area")
+
+def _stops() -> list[dict]:
+    """Boardable stops only.
+
+    GTFS location_type 1 is a parent STATION record that groups its platforms
+    (for example place_guyaft groups ferry stop 317572). Passengers board at
+    the platforms (location_type 0), so listing a station beside its own
+    platforms would count the same place twice. The 4 parent stations stay in
+    the matching statistics for continuity with v1; they are excluded only
+    from what the tools return and count.
+    """
+    return [s for s in M.load_stops() if s.get("location_type", "0") != "1"]
 
 
 # --- walk network helpers -----------------------------------------------------
@@ -126,7 +138,7 @@ def _origin_context(lat: float, lon: float, snap_d: float) -> dict:
     can notice that "the campus" has landed on a ferry terminal. Returned on
     every response, unrequested, like match_confidence.
     """
-    stop = min(M.load_stops(),
+    stop = min(_stops(),
                key=lambda s: M.haversine_m(lat, lon, s["lat"], s["lon"]))
     return {
         "nearest_named_stop": stop["stop_name"],
@@ -204,7 +216,7 @@ def find_nearest_accessible_stops(
     index = M.match_index(STRATEGY)
 
     scored = sorted(
-        ((s, M.haversine_m(lat, lon, s["lat"], s["lon"])) for s in M.load_stops()),
+        ((s, M.haversine_m(lat, lon, s["lat"], s["lon"])) for s in _stops()),
         key=lambda t: t[1],
     )[: max_results * 3]
 
@@ -220,7 +232,8 @@ def find_nearest_accessible_stops(
         "study_area": _study_area(),
         "matching_strategy": STRATEGY,
         "stops": entries,
-        "stops_in_study_area": len(M.load_stops()),
+        "stops_in_study_area": len(_stops()),
+        "boardable_stops_in_study_area": len(_stops()),
         "unreachable_count": len(entries) - len(routable),
         "data_gaps": ["timetables", "real_time_departures", "service_alerts", "fares"],
     }
@@ -434,7 +447,7 @@ def find_walking_route(
         "data_gaps": ["steps_and_gradients", "lighting", "wheelchair_access", "temporary_closures"],
     }
     if explain:
-        payload["summary"] = llm.ask(system=_SYSTEM, user=(
+        payload["summary"] = llm.ask(system=_SYSTEM_WALK, user=(
             f"Walking route: {payload['distance_m']} m, about "
             f"{payload['duration_s'] // 60} minutes. Straight-line distance "
             f"{payload['straight_line_m']} m, so the walk is {payload['detour_ratio']} "
@@ -461,9 +474,10 @@ def find_walkable_catchment(
     budget, a count, and the area reachable on foot. Walking speed is
     1.35 m/s (about 4.9 km/h, a standard planning speed).
 
-    Every stop carries a match_confidence object. Stops whose footpath
-    connection is severed are listed separately in unreliable_stops and are
-    not counted as reachable.
+    Stops include bus stops and ferry terminals; stop_name says which. Every
+    stop carries a match_confidence object. Stops whose footpath connection is
+    severed are listed separately in unreliable_stops and are not counted as
+    reachable.
 
     The centre is a coordinate. If the user gave a place name, resolve it with
     geocode_place and check what it matched: a ferry terminal, station, shop or
@@ -500,7 +514,7 @@ def find_walkable_catchment(
 
     index = M.match_index(STRATEGY)
     reachable, unreliable = [], []
-    for stop in M.load_stops():
+    for stop in _stops():
         m = index[stop["stop_id"]]
         if m.matched and m.node in reach:
             d = reach[m.node] + snap_d
@@ -604,7 +618,7 @@ def _hull_area_m2(points: list[tuple[float, float]], lat0: float, lon0: float) -
 def _closest_usable(lat: float, lon: float, from_node: str, index: dict):
     """Nearest stop that has a usable access point, by network walking distance."""
     cands = sorted(
-        ((s, M.haversine_m(lat, lon, s["lat"], s["lon"])) for s in M.load_stops()),
+        ((s, M.haversine_m(lat, lon, s["lat"], s["lon"])) for s in _stops()),
         key=lambda t: t[1],
     )[:12]
     usable = []
@@ -623,13 +637,22 @@ def _closest_usable(lat: float, lon: float, from_node: str, index: dict):
 
 def _rejected_near(lat: float, lon: float, index: dict, k: int = 3) -> list[dict]:
     cands = sorted(
-        ((s, M.haversine_m(lat, lon, s["lat"], s["lon"])) for s in M.load_stops()),
+        ((s, M.haversine_m(lat, lon, s["lat"], s["lon"])) for s in _stops()),
         key=lambda t: t[1],
     )[:8]
     return [{"stop_id": s["stop_id"], "stop_name": s["stop_name"],
              "match_confidence": index[s["stop_id"]].public()}
             for s, _ in cands if not index[s["stop_id"]].matched][:k]
 
+
+# Separate prompt for find_walking_route. With the stop-access prompt the model
+# described a point-to-point walk as "the walking route to the public transport
+# stop" - prose framing that was not in the facts it was given (v0.3.0 test).
+_SYSTEM_WALK = (
+    "You summarise a walking route between two points. Use only the facts you "
+    "are given. Never invent distances, places or public transport. At most "
+    "two sentences."
+)
 
 # The model writes prose about numbers already computed. It is never asked for
 # a distance, a confidence, or a judgement about reliability - only to restate

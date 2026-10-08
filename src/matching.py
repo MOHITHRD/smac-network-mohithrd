@@ -119,6 +119,8 @@ def load_stops(slug: str = SLUG) -> tuple[dict, ...]:
                 "stop_name": r.get("stop_name", ""),
                 "lat": float(r["stop_lat"]),
                 "lon": float(r["stop_lon"]),
+                # GTFS: 0 = boardable stop/platform, 1 = parent station record
+                "location_type": (r.get("location_type") or "0").strip(),
             })
     return tuple(rows)
 
