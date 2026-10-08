@@ -1,0 +1,171 @@
+{
+  "harness_version": "1.0.1",
+  "url": "http://network:8000/mcp",
+  "agent": "smac-network-mohithrd",
+  "tested_at": "2026-10-08T06:09:49.898144+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "number": 1,
+      "name": "Initialise",
+      "status": "PASS",
+      "findings": [
+        {
+          "level": "INFO",
+          "message": "Connected over Streamable HTTP to http://network:8000/mcp"
+        },
+        {
+          "level": "INFO",
+          "message": "Protocol 2025-11-25"
+        },
+        {
+          "level": "INFO",
+          "message": "Agent name smac-network-mohithrd"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "name": "health tool",
+      "status": "PASS",
+      "findings": [
+        {
+          "level": "INFO",
+          "message": "health OK: {\"status\": \"ok\", \"agent\": \"smac-network-mohithrd\", \"version\": \"0.1.0\", \"data_sources\": [\"OpenStreetMap contributors via Overpass/OSMnx (ODbL 1.0), walk network "
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Tool schemas",
+      "status": "PASS",
+      "findings": [
+        {
+          "level": "INFO",
+          "message": "3 domain tool(s): geocode_place, find_nearest_accessible_stops, find_multimodal_route"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "name": "Data conventions",
+      "status": "PASS",
+      "findings": [
+        {
+          "level": "INFO",
+          "message": "`geocode_place` OK (generated from schema)"
+        },
+        {
+          "level": "INFO",
+          "message": "`find_nearest_accessible_stops` OK (generated from schema)"
+        },
+        {
+          "level": "INFO",
+          "message": "`find_multimodal_route` OK (generated from schema)"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "name": "Malformed input",
+      "status": "PASS",
+      "findings": [
+        {
+          "level": "INFO",
+          "message": "7 malformed calls handled; agent still healthy afterwards"
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "name": "Response time",
+      "status": "PASS",
+      "findings": [
+        {
+          "level": "INFO",
+          "message": "13 calls, slowest `find_nearest_accessible_stops` at 1.85s (limit 45s)"
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "tool": "(initialize)",
+      "purpose": "initialize",
+      "seconds": 0.024,
+      "outcome": "ok"
+    },
+    {
+      "tool": "health",
+      "purpose": "health",
+      "seconds": 0.008,
+      "outcome": "ok"
+    },
+    {
+      "tool": "geocode_place",
+      "purpose": "valid call",
+      "seconds": 1.374,
+      "outcome": "ok"
+    },
+    {
+      "tool": "find_nearest_accessible_stops",
+      "purpose": "valid call",
+      "seconds": 1.848,
+      "outcome": "ok"
+    },
+    {
+      "tool": "find_multimodal_route",
+      "purpose": "valid call",
+      "seconds": 1.487,
+      "outcome": "ok"
+    },
+    {
+      "tool": "geocode_place",
+      "purpose": "malformed: missing required arguments",
+      "seconds": 0.011,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "geocode_place",
+      "purpose": "malformed: wrong type for `place`",
+      "seconds": 0.006,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "find_nearest_accessible_stops",
+      "purpose": "malformed: missing required arguments",
+      "seconds": 0.004,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "find_nearest_accessible_stops",
+      "purpose": "malformed: wrong type for `lat`",
+      "seconds": 0.003,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "find_multimodal_route",
+      "purpose": "malformed: missing required arguments",
+      "seconds": 0.003,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "find_multimodal_route",
+      "purpose": "malformed: wrong type for `origin_lat`",
+      "seconds": 0.003,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "smac_tool_that_does_not_exist",
+      "purpose": "malformed: unknown tool name",
+      "seconds": 0.003,
+      "outcome": "tool_error"
+    },
+    {
+      "tool": "health",
+      "purpose": "liveness after malformed calls",
+      "seconds": 0.003,
+      "outcome": "ok"
+    }
+  ]
+}

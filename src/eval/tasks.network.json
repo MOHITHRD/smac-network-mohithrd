@@ -1,11 +1,79 @@
 [
   {
-    "prompt": "How far is it by road to the Sydney Opera House?",
+    "_ground_truth": "stlucia_stops.csv contains 59 rows. Nearest stop to (-27.4975, 153.0137) by haversine is 1802 (UQ Chancellor's Place, zone E) at 252 m. Recomputed in scripts/ground_truth.py, independent of the agent.",
+    "prompt": "Which public transport stops can I walk to from the University of Queensland St Lucia campus, and how reliable is the footpath connection to each?",
     "tools": [
       {
-        "name": "geocode_place",
+        "name": "find_nearest_accessible_stops",
         "input": {
-          "place": "Sydney Opera House"
+          "lat": -27.4975,
+          "lon": 153.0137,
+          "max_results": 5,
+          "explain": false
+        }
+      }
+    ],
+    "output": {
+      "study_area": "St Lucia",
+      "matching_strategy": "M3",
+      "stops_in_study_area": 59
+    }
+  },
+  {
+    "_ground_truth": "Every response must carry the match_confidence field whether or not it was requested. Asserts the field is present and names the strategy that produced it.",
+    "prompt": "Find the single closest stop to UQ St Lucia.",
+    "tools": [
+      {
+        "name": "find_nearest_accessible_stops",
+        "input": {
+          "lat": -27.4975,
+          "lon": 153.0137,
+          "max_results": 1,
+          "explain": false
+        }
+      }
+    ],
+    "output": {
+      "stops": [
+        {
+          "match_confidence": {
+            "strategy": "M3"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "_ground_truth": "Nearest stop to (-27.4698, 153.0251) is 3049 m away and the pinned walk graph covers St Lucia only, so the point lies outside the study area. Correct behaviour is a structured decline, not a route.",
+    "prompt": "Which stops can I walk to from Brisbane CBD?",
+    "tools": [
+      {
+        "name": "find_nearest_accessible_stops",
+        "input": {
+          "lat": -27.4698,
+          "lon": 153.0251,
+          "max_results": 3,
+          "explain": false
+        }
+      }
+    ],
+    "output": {
+      "status": "out_of_scope",
+      "reason": "study area"
+    }
+  },
+  {
+    "_ground_truth": "Sydney is outside South East Queensland (smac.SEQ_BBOX). Spec section 6 requires a structured refusal rather than an invented answer.",
+    "prompt": "Plan a walking and transit route from the Sydney Opera House to Bondi Beach.",
+    "tools": [
+      {
+        "name": "find_multimodal_route",
+        "input": {
+          "origin_lat": -33.8568,
+          "origin_lon": 151.2153,
+          "destination_lat": -33.8908,
+          "destination_lon": 151.2743,
+          "explain": false
         }
       }
     ],
@@ -15,20 +83,41 @@
     }
   },
   {
-    "prompt": "How far is it by road from UQ St Lucia to Brisbane Airport?",
+    "_ground_truth": "A route between two points inside the study area must return both access points with their match confidence, and must declare the transit leg as not composed rather than inventing a timetable.",
+    "prompt": "How do I get from UQ Chancellor's Place to the St Lucia ferry terminal by public transport?",
     "tools": [
       {
-        "name": "estimate_route_distance",
+        "name": "find_multimodal_route",
         "input": {
           "origin_lat": -27.4975,
           "origin_lon": 153.0137,
-          "destination_lat": -27.3842,
-          "destination_lon": 153.1175
+          "destination_lat": -27.4999,
+          "destination_lon": 153.0106,
+          "explain": false
         }
       }
     ],
     "output": {
-      "distance_m": 0
+      "study_area": "St Lucia",
+      "matching_strategy": "M3"
+    }
+  },
+  {
+    "_ground_truth": "Spec section 6 and handshake check 6: malformed input must return a readable error, not crash the server. Latitude 999 is not a valid WGS84 coordinate.",
+    "prompt": "Find stops near latitude 999.",
+    "tools": [
+      {
+        "name": "find_nearest_accessible_stops",
+        "input": {
+          "lat": 999.0,
+          "lon": 153.0137,
+          "max_results": 3,
+          "explain": false
+        }
+      }
+    ],
+    "output": {
+      "status": "out_of_scope"
     }
   }
 ]

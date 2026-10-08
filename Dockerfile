@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app/src
 
 # Dependencies first, so editing an agent does not reinstall them.
-RUN pip install --no-cache-dir "mcp>=2.0.0,<3" "httpx>=0.27" "wandb>=0.18"
+RUN pip install --no-cache-dir "mcp>=2.0.0,<3" "httpx>=0.27" "wandb>=0.18" "networkx>=3.2"
 
 COPY src /app/src
 COPY application /app/application

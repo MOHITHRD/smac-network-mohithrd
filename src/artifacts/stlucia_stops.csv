@@ -1,0 +1,60 @@
+stop_id,stop_code,stop_name,stop_lat,stop_lon,location_type,parent_station
+10432,010432,"Hawken Dr at Tarcoola Street, stop 27",-27.504585,153.000393,0,
+11501,011501,UQ Lakes stop A,-27.497753,153.018234,0,place_uqlksa
+11503,011503,UQ Lakes stop C,-27.49803,153.01769,0,place_uqlksa
+11504,011504,UQ Lakes stop D,-27.498038,153.017843,0,place_uqlksa
+11505,011505,UQ Lakes stop E,-27.498044,153.017962,0,place_uqlksa
+1234,001234,"Carmody Rd near Baty St, stop 21",-27.497095,152.998875,0,
+1235,001235,"Carmody Rd near Raven St, stop 21",-27.497168,152.999912,0,
+1236,001236,"Carmody Rd at Munro Street, stop 22",-27.498107,153.005505,0,
+1237,001237,"Carmody Rd at Munro Street, stop 22",-27.498046,153.006004,0,
+1715,001715,"Indooroopilly Rd near McCaul St, stop 23",-27.501046,152.991393,0,
+1746,001746,University of Queensland,-27.498198,153.011071,0,
+1797,001797,"UQ Chancellor's Place, zone D",-27.497974,153.011139,0,place_intuq
+1798,001798,"UQ Chancellor's Place, zone C",-27.498139,153.011102,0,place_intuq
+1799,001799,"UQ Chancellor's Place, zone B",-27.498301,153.011068,0,place_intuq
+1801,001801,"UQ Chancellor's Place, zone A",-27.498448,153.011036,0,place_intuq
+1802,001802,"UQ Chancellor's Place, zone E",-27.497798,153.01117,0,place_intuq
+1803,001803,"Coldridge St at Field Street, stop 23",-27.494703,153.00632,0,
+1804,001804,"Coldridge St at Field Street, stop 23",-27.494435,153.006123,0,
+1805,001805,"Coldridge St near Carmody Rd, stop 23a",-27.497482,153.006804,0,
+1806,001806,"Coldridge St near Carmody Rd, stop 23a",-27.497651,153.006601,0,
+1807,001807,"Carmody Rd near Boomerang Rd, stop 24",-27.498533,153.008238,0,
+1811,001811,"Hawken Dr at Picardy Street, stop 31",-27.499866,153.009491,0,
+1812,001812,"Hawken Dr at Picardy Street, stop 31",-27.500295,153.009146,0,
+1813,001813,"Hawken Dr at Hawken Villiage, stop 30",-27.502064,153.006585,0,
+1814,001814,"Hawken Dr at Hawken Villiage, stop 30",-27.501892,153.006645,0,
+1815,001815,Boomerang Rd W at St Lucia South near Hawken Dr,-27.501517,153.006885,0,
+1817,001817,"Hawken Dr near Highland Tce, stop 29",-27.503858,153.004175,0,
+1818,001818,"Hawken Dr near Highland Tce, stop 29",-27.503645,153.004389,0,
+1819,001819,"Hawken Dr at Highland Terrace, stop 28",-27.50426,153.00253,0,
+1820,001820,"Hawken Dr at Highland Terrace, stop 28",-27.50437,153.002003,0,
+1821,001821,"Hawken Dr at Tarcoola Street, stop 27",-27.504844,153.001049,0,
+1823,001823,"Hawken Dr at Tenth Avenue, stop 26",-27.504037,152.999151,0,
+1824,001824,"Hawken Dr at Tenth Avenue, stop 26",-27.503588,152.998909,0,
+1825,001825,"Roundabout at Hawken Shops, stop 25",-27.502281,152.996902,0,
+1826,001826,"Hawken Dr at Hawken Shops, stop 25",-27.502444,152.997695,0,
+1827,001827,"Hawken Dr at Ironside School, stop 23/24",-27.501224,152.995989,0,
+1828,001828,"Swann Rd at Ironside School, stop 23/24",-27.500482,152.99565,0,
+1829,001829,"Swann Rd at Hutton Lane, stop 21",-27.498274,152.993631,0,
+1830,001830,"Swann Rd at Hutton Lane, stop 22",-27.49798,152.993829,0,
+1832,001832,"Swann Rd at Bonvale Lane, stop 21",-27.497757,152.991212,0,
+1833,001833,"Swann Rd at Bonvale Lane, stop 21",-27.497572,152.991241,0,
+1835,001835,"Gailey Rd at Gailey North, stop 19",-27.496555,152.991154,0,
+1838,001838,"Gailey Rd at Gailey Park, stop 18",-27.494188,152.992722,0,
+1840,001840,"Gailey Rd at Gailey - SFSD, stop 17",-27.4926,152.993776,0,
+1841,001841,"Sir Fred Schonell Dr at Gailey Road, stop 17",-27.492397,152.994967,0,
+1842,001842,"Sir Fred Schonell Dr at Gailey Road, stop 17",-27.492398,152.994705,0,
+1845,001845,"Sir Fred Schonell Dr at St Lucia West, stop 19",-27.493802,152.997579,0,
+1846,001846,"Sir Fred Schonell Dr at St Lucia West, stop 19",-27.493953,152.997587,0,
+1849,001849,"Sir Fred Schonell Dr at St Lucia Ferry, stop 21",-27.494233,153.003065,0,
+1850,001850,"Sir Fred Schonell Dr at St Lucia Ferry, stop 21",-27.494352,153.003118,0,
+1855,001855,"Gailey Rd at Brisbane Street, stop 16",-27.490991,152.994524,0,
+1882,001882,UQ Lakes station,-27.49805,153.018077,0,place_uqlksa
+1947,001947,UQ Lakes stop F,-27.497985,153.018309,0,place_uqlksa
+317572,317572,Guyatt Park ferry terminal,-27.492284,153.002217,0,place_guyaft
+319665,319665,UQ St Lucia ferry terminal,-27.496777,153.019549,0,place_uqst
+place_guyaft,,Guyatt Park ferry terminal,-27.492317,153.002126,1,
+place_intuq,,UQ Chancellors Place,-27.49797,153.011136,1,
+place_uqlksa,,UQ Lakes station,-27.497986,153.017515,1,
+place_uqst,,UQ St Lucia ferry terminal,-27.496777,153.019549,1,

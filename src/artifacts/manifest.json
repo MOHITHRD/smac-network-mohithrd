@@ -1,0 +1,23 @@
+{
+  "study_area": "St Lucia, Queensland, Australia",
+  "slug": "stlucia",
+  "built_utc": "2026-09-10T04:10:55.090667+00:00",
+  "osm": {
+    "source": "OpenStreetMap via Overpass API (OSMnx)",
+    "licence": "OpenStreetMap contributors, ODbL 1.0",
+    "network_type": "walk",
+    "simplified": true,
+    "osmnx_version": "2.1.1",
+    "nodes": 2239,
+    "edges": 5778,
+    "file": "stlucia_walk.graphml"
+  },
+  "gtfs": {
+    "source": "TransLink SEQ static GTFS",
+    "licence": "TransLink SEQ GTFS, CC BY 4.0",
+    "origin": "https://gtfsrt.api.translink.com.au/GTFS/SEQ_GTFS.zip",
+    "stops_in_feed": 13096,
+    "stops_in_study_area": 59,
+    "file": "stlucia_stops.csv"
+  }
+}

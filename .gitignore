@@ -11,3 +11,4 @@ usage*.jsonl
 /*.html
 orchestrator_trace.jsonl
 wandb/
+.DS_Store
