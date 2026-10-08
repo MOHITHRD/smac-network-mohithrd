@@ -1,0 +1,42 @@
+[
+  {
+    "_ground_truth": "Control: coordinates given, no place lookup needed. Pinned UQ point (-27.4975, 153.0137) is the spec section 5 worked example. Nearest stops by haversine over stlucia_stops.csv (scripts/ground_truth.py): 1802 UQ Chancellor's Place zone E 252 m, 1797 zone D 258 m, place_intuq 258 m, 1798 zone C 266 m, 1746 University of Queensland 271 m.",
+    "prompt": "Which public transport stops can I walk to from the point -27.4975, 153.0137?",
+    "expected_tools": ["find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4975, "lon": 153.0137, "tolerance_m": 50},
+    "answer_any": ["Chancellor", "1802", "1797", "1798", "1746"],
+    "answer_none": ["ferry"]
+  },
+  {
+    "_ground_truth": "Same intended origin as the control (UQ St Lucia campus). Nominatim resolves 'UQ St Lucia' to the ferry terminal (amenity/ferry_terminal), 587 m from the pinned point (geocode test, 8 Oct 2026). Tolerance 300 m: within one typical SEQ stop spacing (200-400 m); OSM's 'University of Queensland' building at 261 m is accepted, the ferry terminal is not.",
+    "prompt": "Which public transport stops can I walk to from UQ St Lucia?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4975, "lon": 153.0137, "tolerance_m": 300},
+    "answer_any": ["Chancellor", "1802", "1797", "1798", "1746"],
+    "answer_none": ["ferry"]
+  },
+  {
+    "_ground_truth": "Same intended origin. Nominatim returns no match for this full phrase (geocode test, 8 Oct 2026), but 'University of Queensland' resolves 261 m from the pinned point. A correct orchestrator retries with a shorter name rather than reporting the campus as out of coverage.",
+    "prompt": "Which public transport stops can I walk to from the University of Queensland St Lucia campus?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4975, "lon": 153.0137, "tolerance_m": 300},
+    "answer_any": ["Chancellor", "1802", "1797", "1798", "1746"],
+    "answer_none": ["ferry", "outside its coverage", "outside the coverage"]
+  },
+  {
+    "_ground_truth": "Same intended origin. Nominatim resolves 'University of Queensland' to Chancellors Place (building/roof), 261 m from the pinned point, inside tolerance.",
+    "prompt": "Which public transport stops can I walk to from the University of Queensland?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4975, "lon": 153.0137, "tolerance_m": 300},
+    "answer_any": ["Chancellor", "1802", "1797", "1798", "1746"],
+    "answer_none": ["ferry"]
+  },
+  {
+    "_ground_truth": "Intended origin: pinned Brisbane CBD point (-27.4698, 153.0251), 3049 m from the nearest study-area stop, so the correct outcome is a decline. Nominatim resolves 'Brisbane CBD' to an office named 'CBD' in Musgrave St, West End, 1971 m from the pinned point (geocode test, 8 Oct 2026). The decline is still correct, but for the wrong origin: origin check is expected to fail.",
+    "prompt": "Which public transport stops can I walk to from Brisbane CBD?",
+    "expected_tools": ["geocode_place", "find_nearest_accessible_stops"],
+    "origin": {"lat": -27.4698, "lon": 153.0251, "tolerance_m": 300},
+    "answer_any": ["outside", "not cover", "only covers", "study area", "cannot"],
+    "answer_none": []
+  }
+]
